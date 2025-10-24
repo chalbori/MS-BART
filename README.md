@@ -7,6 +7,8 @@
 
 <sup>1</sup> X-LANCE Lab, Shanghai Jiao Tong University, Shanghai  <sup>2</sup> Suzhou Laboratory, Suzhou.
 
+
+<a href="https://arxiv.org/abs/2510.20615" target="_blank"  style="margin-right: 4px;"><img alt="arXiv" src="https://img.shields.io/badge/arXiv-2510.20615-b31b1b?logo=arxiv&logoColor=white"/></a>
 <a href='https://modelscope.cn/studios/csyanghan/MS-BART/'><img src='https://img.shields.io/badge/ModelScope-Demo-blue'></a>
 
 </div>
