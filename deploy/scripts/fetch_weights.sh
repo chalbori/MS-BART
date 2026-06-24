@@ -19,7 +19,7 @@ set -euo pipefail
 # Fill this in once the weights archive is uploaded to Google Drive, so the
 # script can be run with no arguments. A link/id passed on the command line or
 # via $WEIGHTS_URL still overrides it.
-DEFAULT_WEIGHTS_URL=""   # TODO: paste the Google Drive share link or file id
+DEFAULT_WEIGHTS_URL="https://drive.google.com/uc?id=1zqKdNzOOYT5_xaY7ZF15f95qlWvdOS8D"
 
 URL="${1:-${WEIGHTS_URL:-$DEFAULT_WEIGHTS_URL}}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

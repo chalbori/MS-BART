@@ -47,7 +47,15 @@ pip install torch --index-url https://download.pytorch.org/whl/cu124
 
 # 3. Install the rest
 pip install -r requirements-infer.txt
+
+# 4. Download the model weights (~457 MB) from Google Drive
+pip install gdown
+bash scripts/fetch_weights.sh        # -> weights/msbart/ + weights/mist.ckpt
 ```
+
+> The weights are **not** in git. `fetch_weights.sh` pulls them from Google
+> Drive (link baked into the script) and unpacks them into `weights/`.
+> For a full Python-program integration, see **INTEGRATION.md**.
 
 No `pip install` of this package or of MIST is required — `msbart_predict`
 adds `vendor/` to `sys.path` automatically.

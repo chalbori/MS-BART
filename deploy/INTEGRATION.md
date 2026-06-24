@@ -48,9 +48,9 @@ pip install -e .
 The weights live on Google Drive (≈457 MB). `gdown` is pulled in by step 1b.
 ```bash
 pip install gdown        # if not already present
-bash scripts/fetch_weights.sh "<google-drive-link>"
-# or, once DEFAULT_WEIGHTS_URL is filled in scripts/fetch_weights.sh:
-bash scripts/fetch_weights.sh
+bash scripts/fetch_weights.sh          # uses the bundled Google Drive link
+# or override with a different archive:
+# bash scripts/fetch_weights.sh "https://drive.google.com/uc?id=<file-id>"
 ```
 This populates `weights/msbart/` and `weights/mist.ckpt`.
 
