@@ -29,42 +29,55 @@ deploy/
 └─ README.md
 ```
 
-To move it to another machine, copy the **entire `deploy/` folder** (it is
-self-contained — weights and MIST source are included).
+To move it to another machine, **clone the repo** (the bundle is `deploy/`).
+Put it at a **fixed** location and **next to** the program you're attaching it
+to (not inside it), since the editable install below resolves `weights/` and
+`vendor/` relative to this folder — don't move or delete it afterwards.
+
+```bash
+cd ~/work          # or /opt — somewhere stable, beside your program
+git clone git@github.com:chalbori/MS-BART.git
+# -> bundle at ~/work/MS-BART/deploy
+```
 
 ## Install on the target machine (Ubuntu or macOS)
 
-```bash
-# 1. Create a fresh env (Python 3.9–3.11)
-conda create -n msbart-infer python=3.10 -y && conda activate msbart-infer
-# (or: python -m venv .venv && source .venv/bin/activate)
+**Attaching to an existing Python program?** Activate *that program's* env
+(don't make a new one) and install editable by path — then `import
+msbart_predict` works from inside your program. Full guide: **INTEGRATION.md**.
 
-# 2. Install PyTorch for the target platform FIRST
+```bash
+# 0. (attach mode) activate your program's existing env:
+#      source /path/to/your-program/.venv/bin/activate    # or: conda activate <env>
+# (standalone testing only) make a throwaway env instead:
+#      cd ~/work/MS-BART/deploy && python -m venv .venv && source .venv/bin/activate
+
+# 1. Install PyTorch for the target platform FIRST
 #    Linux + CUDA 12.x:
 pip install torch --index-url https://download.pytorch.org/whl/cu124
 #    Linux/macOS CPU (macOS automatically gets Apple-MPS support):
-#    pip install torch
+#    pip install torch --index-url https://download.pytorch.org/whl/cpu
 
-# 3. Install the rest
-pip install -r requirements-infer.txt
+# 2. Install this bundle editable (pulls the slim deps from pyproject.toml)
+pip install -e ~/work/MS-BART/deploy
 
-# 4. Download the model weights (~457 MB) from Google Drive
+# 3. Download the model weights (~457 MB) from Google Drive
 pip install gdown
-bash scripts/fetch_weights.sh        # -> weights/msbart/ + weights/mist.ckpt
+bash ~/work/MS-BART/deploy/scripts/fetch_weights.sh   # -> weights/msbart/ + weights/mist.ckpt
 ```
 
 > The weights are **not** in git. `fetch_weights.sh` pulls them from Google
 > Drive (link baked into the script) and unpacks them into `weights/`.
-> For a full Python-program integration, see **INTEGRATION.md**.
-
-No `pip install` of this package or of MIST is required — `msbart_predict`
-adds `vendor/` to `sys.path` automatically.
+>
+> No-install alternative: skip step 2 and instead `pip install -r
+> requirements-infer.txt`, then add the bundle to `sys.path`/`PYTHONPATH`
+> (`msbart_predict` auto-adds `vendor/` for the MIST import).
 
 ## Use it (Python API)
 
 ```python
-import sys; sys.path.insert(0, "/path/to/deploy")   # or set PYTHONPATH
-from msbart_predict import MSBartPredictor
+from msbart_predict import MSBartPredictor   # works directly after `pip install -e`
+# (no install? -> import sys; sys.path.insert(0, "/path/to/deploy") first)
 
 predictor = MSBartPredictor(device="auto")   # CUDA → MPS → CPU; loads models once
 
