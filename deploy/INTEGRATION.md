@@ -18,35 +18,59 @@ are cheap (no 457 MB reload).
 ## 1. One-time setup on the target machine
 
 ### 1a. Copy the bundle
-Copy the whole `deploy/` folder to the target machine (anywhere, e.g.
-`/opt/msbart/deploy`). It is self-contained except for the model weights
-(downloaded in step 1c). `vendor/mist/` ships the MIST source, so no separate
-MIST clone/install is needed.
+Put the bundle on the target machine **next to** your program, not inside it
+(avoid nesting git repos), and at a **fixed** location — the editable install in
+step 1b resolves `weights/` and `vendor/` relative to this folder, so it must
+not be moved or deleted afterwards.
 
-### 1b. Environment + dependencies
 ```bash
-cd /opt/msbart/deploy
-python -m venv .venv && source .venv/bin/activate     # or conda; Python 3.9–3.11
+# clone anywhere stable, e.g. a sibling of your program
+cd ~/work          # (or /opt)
+git clone git@github.com:chalbori/MS-BART.git
+# -> the bundle is at ~/work/MS-BART/deploy
+```
+Layout you're aiming for:
+```
+~/work/
+├─ my-ms2-report-program/   ← your existing program (its own git/env)
+└─ MS-BART/deploy/          ← this bundle (cloned, kept in place)
+```
+`vendor/mist/` ships the MIST source, so no separate MIST clone/install is needed.
 
-# Install the torch build that matches THIS machine FIRST:
+### 1b. Install into YOUR program's environment
+**Do not create a new venv.** Activate the same environment your program already
+uses, so that `import msbart_predict` works from inside your program.
+
+```bash
+# 1. activate your program's existing env (NOT a fresh one)
+cd ~/work/my-ms2-report-program
+source .venv/bin/activate            # or: conda activate <your-env>   (Python 3.9–3.11)
+
+# 2. install the torch build that matches THIS machine FIRST:
 #   Linux + NVIDIA CUDA 12.x:
 pip install torch --index-url https://download.pytorch.org/whl/cu124
 #   Linux/macOS CPU (macOS gets Apple-MPS automatically):
 #   pip install torch --index-url https://download.pytorch.org/whl/cpu
 
-# Then install this package (editable keeps weights/ and vendor/ resolvable):
-pip install -e .
+# 3. install this bundle editable, by path (keeps weights/ and vendor/ resolvable):
+pip install -e ~/work/MS-BART/deploy
 ```
 
-> Why editable (`-e`)? The default weight/MIST paths are resolved relative to
-> this folder. A non-editable install would move `msbart_predict` into
+> Why editable (`-e`)? The default weight/MIST paths are resolved relative to the
+> bundle folder. A non-editable install would copy `msbart_predict` into
 > site-packages and lose `weights/` and `vendor/`. If you must do a regular
 > install, set `MSBART_WEIGHTS`, `MIST_CKPT`, `MIST_SRC` env vars to absolute
 > paths instead.
+>
+> Standalone testing? If you just want to try the bundle on its own (not attach
+> it yet), you *can* make a throwaway env: `cd MS-BART/deploy && python -m venv
+> .venv && source .venv/bin/activate`, then run steps 2–3 with `pip install -e .`.
 
 ### 1c. Download the model weights
-The weights live on Google Drive (≈457 MB). `gdown` is pulled in by step 1b.
+The weights live on Google Drive (≈457 MB). Run the fetch script from the
+bundle folder (with your program's env still active):
 ```bash
+cd ~/work/MS-BART/deploy
 pip install gdown        # if not already present
 bash scripts/fetch_weights.sh          # uses the bundled Google Drive link
 # or override with a different archive:
@@ -56,6 +80,7 @@ This populates `weights/msbart/` and `weights/mist.ckpt`.
 
 ### 1d. Smoke test
 ```bash
+cd ~/work/MS-BART/deploy
 python example.py                 # built-in demo spectrum
 python predict_cli.py some.ms     # JSON candidates for a real file
 ```
