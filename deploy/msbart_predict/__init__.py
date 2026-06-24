@@ -9,6 +9,7 @@ Pipeline:  MS2 spectrum (+ precursor formula/adduct)
 from .predictor import MSBartPredictor
 from .spectrum import Spectrum, parse_ms_file, parse_mgf_file
 from .device import pick_device
+from .formula_infer import predict_from_mist_cf, parse_mist_cf_output
 
 __all__ = [
     "MSBartPredictor",
@@ -16,6 +17,8 @@ __all__ = [
     "parse_ms_file",
     "parse_mgf_file",
     "pick_device",
+    "predict_from_mist_cf",
+    "parse_mist_cf_output",
 ]
 
 __version__ = "0.1.0"

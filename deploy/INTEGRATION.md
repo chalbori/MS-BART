@@ -147,12 +147,65 @@ with a lock, or hold one predictor per worker process. Sequential use is fine.
 
 ---
 
+## 2b. Don't have the precursor formula? Infer it with mist-cf
+
+MS-BART needs a **neutral formula + adduct** (see §3). If your pipeline doesn't
+already produce one, use **mist-cf** (github.com/samgoldman97/mist-cf, same
+author as MIST) to infer ranked (formula, adduct) hypotheses straight from the
+MS/MS spectrum, then chain them into MS-BART.
+
+**Step 1 — run mist-cf** (separate `ms-gen` conda env; uses SIRIUS internally
+for formula decomposition). Its `quickstart/run_model.sh` takes an MGF
+(`FEATURE_ID`, `PEPMASS`, peaks — no formula needed) and writes
+`mist_cf_out/formatted_output.tsv`:
+
+```
+spec | cand_form | scores | cand_ion | parentmasses | rank
+```
+
+**Step 2 — chain it into MS-BART.** `msbart_predict.formula_infer` reads that
+TSV plus the same MGF and runs MS-BART once per top-N formula hypothesis,
+merging the structure candidates:
+
+```python
+from msbart_predict import MSBartPredictor, predict_from_mist_cf
+
+predictor = MSBartPredictor(device="auto")
+results = predict_from_mist_cf(
+    predictor,
+    mgf_path="mist-cf/data/your_specs.mgf",                 # same MGF fed to mist-cf
+    mist_cf_tsv="mist-cf/quickstart/mist_cf_out/formatted_output.tsv",
+    top_n=3,                      # try the top-3 formula hypotheses per spectrum
+    restrict_to_supported=True,   # drop adducts MS-BART wasn't evaluated on
+)
+for spec_id, cands in results.items():       # cands ranked best-first, de-duped
+    for c in cands:
+        print(spec_id, c["rank"], c["smiles"],
+              c["formula_hypothesis"], c["adduct"],
+              round(c["formula_score"], 2), c["formula_rank"])
+```
+
+Each candidate carries the usual MS-BART keys **plus provenance**:
+`formula_hypothesis` (the neutral formula tried), `adduct`, `formula_score`
+(mist-cf confidence), `formula_rank` (mist-cf rank 1..N), `msbart_rank`
+(MS-BART's rank within that hypothesis). Merging trusts mist-cf's formula rank
+first, then MS-BART's own rank; duplicate SMILES are dropped. Pass `merge=False`
+to keep the raw per-hypothesis lists instead.
+
+`top_n` is the cost knob: the chain runs MS-BART `top_n` times per spectrum.
+`top_n=3` is a good default; raise it if mist-cf's top formula is often wrong.
+
+> CLI smoke test: `python chain_mist_cf_example.py --mgf <mgf> --tsv <tsv>
+> --top-n 3 --only <spec_id>`.
+
+---
+
 ## 3. Inputs you must provide
 
 | field | required | notes |
 |-------|----------|-------|
 | `peaks` | ✅ | list/array of `[m/z, intensity]` |
-| `formula` | ✅ | precursor **neutral** molecular formula (e.g. `C15H10O4`). MIST needs it to decompose fragments into sub-formulae; this matches how MS-BART was evaluated. Your pipeline (SIRIUS / formula annotation) already produces this. |
+| `formula` | ✅ | precursor **neutral** molecular formula (e.g. `C15H10O4`). MIST needs it to decompose fragments into sub-formulae; this matches how MS-BART was evaluated. Your pipeline (SIRIUS / formula annotation) already produces this — or infer it with mist-cf (see §2b). |
 | `adduct` | ✅ | e.g. `[M+H]+`, `[M+Na]+`, `[M-H2O+H]+` |
 | `precursor_mz` | optional | improves sub-formula assignment |
 | `name` | optional | id echoed back in results |
