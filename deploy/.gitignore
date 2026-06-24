@@ -1,0 +1,4 @@
+# Large model artifacts and caches — keep them out of git.
+weights/
+**/__pycache__/
+*.pyc

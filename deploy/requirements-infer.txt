@@ -1,0 +1,27 @@
+# Minimal dependencies for MS-BART inference (raw spectrum -> structure).
+# Verified import set: the heavy training/plotting deps (ray, vllm, deepspeed,
+# wandb, seaborn, cairosvg, ...) from the full environment.yml are NOT needed.
+#
+# NOTE on torch: install the build that matches the target machine FIRST, then
+# this file. Examples:
+#   Linux + CUDA 12.x : pip install torch --index-url https://download.pytorch.org/whl/cu124
+#   Linux/Mac CPU/MPS : pip install torch          (default wheel; Mac gets MPS)
+# Tested with the versions pinned below; loosen if needed for your platform.
+
+torch>=2.2
+transformers>=4.51
+pytorch-lightning>=2.2
+torchmetrics>=1.0
+
+selfies>=2.1,<3            # tokenizer compatibility: keep on 2.x
+rdkit>=2023.9              # (PyPI package name is "rdkit")
+
+numpy>=1.24,<2
+pandas>=2.0
+scipy>=1.10
+scikit-learn>=1.2
+h5py>=3.8
+pathos>=0.3               # multiprocessing backend used by MIST subformula assignment
+multiprocess>=0.70
+tqdm>=4.64
+pyyaml>=6.0
