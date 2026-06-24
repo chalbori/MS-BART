@@ -1,4 +1,7 @@
 # Large model artifacts and caches — keep them out of git.
 weights/
+# Weights archive for Google Drive upload — never commit (hundreds of MB).
+*.zip
+*.tar.gz
 **/__pycache__/
 *.pyc
