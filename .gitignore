@@ -177,3 +177,8 @@ cython_debug/
 
 data/
 logs/
+
+# Keep the vendored MIST `data` subpackage — required at import by
+# deploy/vendor/mist/models/base.py (otherwise: ModuleNotFoundError: mist.data).
+!deploy/vendor/mist/data/
+!deploy/vendor/mist/data/**
